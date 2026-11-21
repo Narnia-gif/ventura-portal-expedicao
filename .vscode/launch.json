@@ -1,0 +1,41 @@
+{
+  // Ventura Biomédica – Portal Comercial e Expedição
+  // F5 roda a opção selecionada em "Executar e Depurar" (a primeira é o padrão).
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Abrir portal (localhost:8000)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "portal.servidor",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "console": "integratedTerminal",
+      "serverReadyAction": {
+        "pattern": "rodando em (http://localhost:[0-9]+)",
+        "uriFormat": "%s",
+        "action": "openExternally"
+      }
+    },
+    {
+      "name": "Exemplo da apresentação (3 testes)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["-v", "tests/test_exemplo_apresentacao.py"],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Rodar testes (pytest)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["-v"],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "console": "integratedTerminal"
+    }
+  ]
+}

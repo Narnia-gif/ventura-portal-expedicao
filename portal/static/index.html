@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal Comercial e Expedição</title>
+<!-- Ventura Biomédica · Integrantes: Luis Felipe Rodrigues Galan, Leandro Inacio, Felipe dos Reis -->
+<style>
+  :root { --cor: #1F4E5F; --fundo: #F3F6F7; --borda: #D5DFE3; --erro: #B3261E; --ok: #1E7B45; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Arial, sans-serif; background: var(--fundo); color: #1d2a30; }
+  header { background: var(--cor); color: #fff; padding: 16px 24px; }
+  header h1 { margin: 0; font-size: 20px; }
+  header p { margin: 4px 0 0; font-size: 13px; opacity: .8; }
+  main { max-width: 1100px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px;
+         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  section { background: #fff; border: 1px solid var(--borda); border-radius: 8px; padding: 16px; }
+  h2 { margin: 0 0 4px; font-size: 16px; color: var(--cor); }
+  .req { font-size: 12px; color: #6b7c84; margin-bottom: 12px; }
+  label { display: block; font-size: 13px; margin: 8px 0 4px; }
+  input, select { width: 100%; padding: 8px; font-size: 15px; border: 1px solid var(--borda); border-radius: 6px; }
+  button { margin-top: 10px; padding: 8px 14px; font-size: 14px; border: 0; border-radius: 6px;
+           background: var(--cor); color: #fff; cursor: pointer; }
+  button.sec { background: #fff; color: var(--cor); border: 1px solid var(--cor); }
+  .linha { display: flex; gap: 8px; }
+  .linha > div { flex: 1; }
+  .msg { margin-top: 10px; font-size: 14px; min-height: 18px; }
+  .msg.erro { color: var(--erro); }
+  .msg.ok { color: var(--ok); }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--borda); }
+  .feito { color: var(--ok); font-weight: bold; }
+  .exemplos { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .exemplos span { font-size: 12px; color: #6b7c84; }
+  button.ex { margin: 0; padding: 4px 10px; font-size: 12px; border-radius: 999px; background: #E6F2EA; color: var(--ok); border: 1px solid #BFDCC9; }
+  button.ex.ruim { background: #FDECEA; color: var(--erro); border-color: #F5C2BD; }
+  footer { text-align: center; font-size: 12px; color: #6b7c84; padding: 8px 16px 24px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Ventura Biomédica · Portal Comercial e Expedição</h1>
+  <p>Demonstração com dados fictícios</p>
+</header>
+
+<div id="aviso" hidden style="max-width:1100px;margin:16px auto 0;padding:12px 16px;background:#FDECEA;color:#B3261E;border:1px solid #F5C2BD;border-radius:8px;font-size:14px">
+  <b>O servidor não está rodando.</b> No terminal, rode <code>python -m portal.servidor</code> e abra
+  <b>http://localhost:8000</b> (não abra o arquivo index.html direto nem pelo Live Server).
+</div>
+
+<main>
+  <!-- RF02 -->
+  <section>
+    <h2>Consultar cliente</h2>
+    <div class="req">RF02</div>
+    <label for="listaClientes">Clientes cadastrados</label>
+    <select id="listaClientes"><option value="">Escolha um cliente…</option></select>
+    <label for="codigo">ou digite o código (6 dígitos)</label>
+    <input id="codigo" maxlength="10" placeholder="000123">
+    <div class="exemplos"><span>Testar erro:</span>
+      <button class="ex ruim" data-campos='{"codigo":"999999"}' data-clicar="btnCliente">✗ 999999 inexistente</button>
+      <button class="ex ruim" data-campos='{"codigo":"12A45B"}' data-clicar="btnCliente">✗ 12A45B com letras</button>
+    </div>
+    <button id="btnCliente">Consultar</button>
+    <div id="msgCliente" class="msg"></div>
+  </section>
+
+  <!-- RF05 e RF06 -->
+  <section>
+    <h2>Conferência do pedido <span id="numPedido"></span></h2>
+    <div class="req">RF05/RF06 · verde = está no pedido · vermelho = não está no pedido</div>
+    <label for="ean">Código de barras (o coletor digita e aperta Enter)</label>
+    <input id="ean" maxlength="20" placeholder="7891000000014">
+    <div class="exemplos" id="produtos"><span>Produtos cadastrados (clique para ler):</span></div>
+    <table>
+      <thead><tr><th>Produto</th><th>Conferido</th></tr></thead>
+      <tbody id="itens"></tbody>
+    </table>
+    <div class="linha">
+      <div><label for="volumes">Volumes (1 a 99)</label><input id="volumes" placeholder="3"></div>
+      <div><label for="pesoConf">Peso bruto kg</label><input id="pesoConf" placeholder="12,50"></div>
+    </div>
+    <div class="exemplos"><span>Exemplo:</span>
+      <button class="ex" data-campos='{"volumes":"3","pesoConf":"12,50"}'>✓ 3 volumes · 12,50 kg</button>
+      <button class="ex ruim" data-campos='{"volumes":"0","pesoConf":"12,50"}'>✗ 0 volumes</button>
+    </div>
+    <button id="btnFinalizar">Finalizar conferência</button>
+    <button id="btnReiniciar" class="sec">Reiniciar</button>
+    <div id="msgConf" class="msg"></div>
+  </section>
+
+  <!-- RF08 -->
+  <section>
+    <h2>Cotação de frete</h2>
+    <div class="req">RF08</div>
+    <label for="listaDestino">Cliente de destino</label>
+    <select id="listaDestino"><option value="">Escolha um cliente…</option></select>
+    <div class="linha">
+      <div><label for="cep">CEP de destino</label><input id="cep" placeholder="15015-000"></div>
+      <div><label for="pesoFrete">Peso kg</label><input id="pesoFrete" placeholder="12,50"></div>
+    </div>
+    <div class="exemplos"><span>Testar erro:</span>
+      <button class="ex ruim" data-campos='{"cep":"1501500","pesoFrete":"12,50"}' data-clicar="btnFrete">✗ CEP com 7 dígitos</button>
+      <button class="ex ruim" data-campos='{"cep":"15015-000","pesoFrete":"1000"}' data-clicar="btnFrete">✗ Peso 1000 kg</button>
+    </div>
+    <button id="btnFrete">Cotar</button>
+    <div id="msgFrete" class="msg"></div>
+    <table id="tabFrete" hidden>
+      <thead><tr><th>Transportadora</th><th>Valor</th><th>Prazo</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</main>
+
+<footer>Integrantes: Luis Felipe Rodrigues Galan · Leandro Inacio · Felipe dos Reis</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+async function api(rota, dados) {
+  try {
+    const resp = await fetch(rota, {
+      method: dados ? "POST" : "GET",
+      headers: { "Content-Type": "application/json" },
+      body: dados ? JSON.stringify(dados) : undefined,
+    });
+    const corpo = await resp.json();
+    $("aviso").hidden = true;
+    return { ok: resp.ok, corpo };
+  } catch (e) {
+    $("aviso").hidden = false;
+    return { ok: false, corpo: { erro: "Servidor não encontrado." } };
+  }
+}
+
+function mensagem(id, texto, ok) {
+  $(id).textContent = texto;
+  $(id).className = "msg " + (ok ? "ok" : "erro");
+}
+
+// RF02 – consultar cliente
+$("btnCliente").onclick = async () => {
+  const r = await api("/api/cliente", { codigo: $("codigo").value });
+  if (r.ok) mensagem("msgCliente", `${r.corpo.nome} · ${r.corpo.cidade} · CEP ${r.corpo.cep}`, true);
+  else mensagem("msgCliente", r.corpo.erro, false);
+};
+$("codigo").onkeydown = (e) => { if (e.key === "Enter") $("btnCliente").click(); };
+
+// RF05 – conferência
+function mostrarConferencia(c) {
+  $("numPedido").textContent = c.numero;
+  $("itens").innerHTML = c.itens.map((i) => {
+    const cls = i.conferido === i.pedido ? "feito" : "";
+    return `<tr><td>${i.produto}<br><small>${i.ean}</small></td><td class="${cls}">${i.conferido} / ${i.pedido}</td></tr>`;
+  }).join("");
+}
+$("ean").onkeydown = async (e) => {
+  if (e.key !== "Enter") return;
+  const r = await api("/api/leitura", { ean: $("ean").value });
+  if (r.ok) { mostrarConferencia(r.corpo); mensagem("msgConf", "Leitura registrada.", true); }
+  else mensagem("msgConf", r.corpo.erro, false);
+  $("ean").value = "";
+};
+$("btnFinalizar").onclick = async () => {
+  const r = await api("/api/finalizar", { volumes: $("volumes").value, peso: $("pesoConf").value });
+  mensagem("msgConf", r.ok ? r.corpo.mensagem : r.corpo.erro, r.ok);
+};
+$("btnReiniciar").onclick = async () => {
+  const r = await api("/api/reiniciar", {});
+  mostrarConferencia(r.corpo);
+  mensagem("msgConf", "Conferência reiniciada.", true);
+};
+
+// RF08 – frete
+$("btnFrete").onclick = async () => {
+  const r = await api("/api/frete", { cep: $("cep").value, peso: $("pesoFrete").value });
+  const tabela = $("tabFrete");
+  if (!r.ok) { tabela.hidden = true; return mensagem("msgFrete", r.corpo.erro, false); }
+  tabela.querySelector("tbody").innerHTML = r.corpo.cotacoes.map((c) =>
+    `<tr><td>${c.transportadora}</td><td>R$ ${c.valor.toFixed(2).replace(".", ",")}</td><td>${c.prazo} dias</td></tr>`
+  ).join("");
+  tabela.hidden = false;
+  mensagem("msgFrete", "Ordenado do menor para o maior valor.", true);
+};
+
+// Botões de exemplo: preenchem os campos e já executam a ação
+function ativarExemplo(b) {
+  b.onclick = () => {
+    const campos = JSON.parse(b.dataset.campos);
+    for (const id in campos) $(id).value = campos[id];
+    if (b.dataset.clicar) $(b.dataset.clicar).click();
+    if (b.dataset.enter) $(b.dataset.enter).dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+  };
+}
+
+// Listas de clientes e produtos cadastrados
+api("/api/cadastros").then((r) => {
+  if (!r.ok) return;
+  for (const c of r.corpo.clientes) {
+    const texto = `${c.codigo} · ${c.nome} (${c.cidade})` + (c.bloqueado ? " – bloqueado" : "");
+    $("listaClientes").add(new Option(texto, c.codigo));
+    if (!c.bloqueado) $("listaDestino").add(new Option(`${c.nome} · ${c.cidade} · ${c.cep}`, c.cep));
+  }
+  for (const p of r.corpo.produtos) {
+    const b = document.createElement("button");
+    b.className = "ex" + (p.no_pedido ? "" : " ruim");
+    b.textContent = (p.no_pedido ? "✓ " : "✗ ") + p.nome;
+    b.dataset.campos = JSON.stringify({ ean: p.ean });
+    b.dataset.enter = "ean";
+    b.title = p.ean;
+    ativarExemplo(b);
+    $("produtos").appendChild(b);
+  }
+});
+$("listaClientes").onchange = () => {
+  if (!$("listaClientes").value) return;
+  $("codigo").value = $("listaClientes").value;
+  $("btnCliente").click();
+};
+$("listaDestino").onchange = () => {
+  $("cep").value = $("listaDestino").value;
+  if (!$("pesoFrete").value) $("pesoFrete").value = "12,50";
+  if ($("cep").value) $("btnFrete").click();
+};
+
+document.querySelectorAll("button.ex").forEach(ativarExemplo);
+
+api("/api/conferencia").then((r) => { if (r.ok) mostrarConferencia(r.corpo); });
+</script>
+</body>
+</html>
